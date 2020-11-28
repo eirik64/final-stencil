@@ -24,10 +24,12 @@ win32 {
 SOURCES += ui/mainwindow.cpp \
     main.cpp \
     glew-1.10.0/src/glew.c \
+    src/TreeScene.cpp \
     ui/view.cpp \
     ui/viewformat.cpp
 
 HEADERS += ui/mainwindow.h \
+    src/TreeScene.h \
     ui_mainwindow.h \
     glew-1.10.0/include/GL/glew.h \
     ui/view.h \
@@ -60,6 +62,15 @@ QMAKE_CXXFLAGS += -g
 macx {
     QMAKE_CXXFLAGS_WARN_ON -= -Warray-bounds -Wc++0x-compat
 }
+
+
+OTHER_FILES += \
+    shaders/texture.frag \
+    shaders/shader.vert \
+    shaders/shader.frag \
+    shaders/particles_update.frag \
+    shaders/particles_draw.frag \
+    shaders/particles_draw.vert
 
 RESOURCES += \
     resources.qrc
