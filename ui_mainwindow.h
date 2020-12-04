@@ -24,6 +24,7 @@ public:
     QWidget *centralWidget;
     QHBoxLayout *horizontalLayout;
     View *view;
+    QWidget *canvas3D;
 
     void setupUi(QMainWindow *MainWindow)
     {
