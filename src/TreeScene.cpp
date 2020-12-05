@@ -58,6 +58,43 @@ void TreeScene::setupTreeAlternative(std::string inputStr, float branchLength, f
         case '-':
             // Updates current position, angle increases by 22.5 to signify turning right
             break;
+<<<<<<< HEAD
+=======
+        }
+    }
+}
+
+
+/* Takes in character, replaces all the axiom letters to a new set of alphabetic and special character collection
+ * Input: an input string
+ * Output: output string changed according to rule
+ */
+std::string TreeScene::generateString(std::string chars) {
+    std::vector<char> finalVec;
+    std::vector<char> v(chars.begin(), chars.end()); // use iterator to create a vector of characters
+    for (int i=0; i < static_cast<int>(chars.size()); ++i) { // for every character in passed-in chars
+        char current = v[i]; // i-th element in our new vector
+        if (current == axiom) {
+            finalVec.push_back('A');
+            finalVec.push_back('+');
+            finalVec.push_back('-');
+            finalVec.push_back('[');
+            finalVec.push_back('B');
+            finalVec.push_back('+');
+            finalVec.push_back('A');
+            finalVec.push_back('-');
+            finalVec.push_back('[');
+            finalVec.push_back('B');
+            finalVec.push_back(']');
+            finalVec.push_back(']');
+            finalVec.push_back('-');
+            finalVec.push_back('[');
+            finalVec.push_back('A');
+            finalVec.push_back('B');
+            finalVec.push_back(']'); // replace with the rule
+        } else { // if it doesn't equal the axiom,
+            finalVec.push_back(current); // we don't need to replace with anything.
+>>>>>>> 782e9ddd62df9b9d7c41ec4a2203bbce15aa3ca6
         }
     }
 }
@@ -141,5 +178,86 @@ std::string TreeScene::generateStringAlt(std::string chars, int depth) {
     }
     std::cout<<"output string: "<<outputString<<std::endl;
     return outputString;
+<<<<<<< HEAD
 }
 
+=======
+} // end of generateString() method
+
+
+/*
+Please look over my code here. I'm supeer exhausteed by this point so this isn't really processing
+for me anymore. Feel free to change anything that may not make sense or scrap it. I'm going to sleep now ˙∆˚
+I'm assuming here that our axiom is just one character long... I hope
+Also, I included depth to represent the amount of times we went to walk
+through our string and update it based on our rules.
+I'm using the rules for the very last tree that I added in the docs. Subject to change**
+*/
+std::string TreeScene::generateStringAlt(std::string chars, int depth) {
+    std::vector<char> intermedVec;
+    std::vector<char> v(chars.begin(), chars.end());
+
+    for (int i = 0; i < depth; i++) {
+        for (int j = 0; j < (int) v.size(); j++) {
+            char current = v[i];
+            // B -> BB+[-B+B+B+B]-[B+B-B]
+            switch (current) {
+            case 'b':
+                intermedVec.push_back('b');
+                intermedVec.push_back('b');
+                intermedVec.push_back('+');
+                intermedVec.push_back('[');
+                intermedVec.push_back('-');
+                intermedVec.push_back('b');
+                intermedVec.push_back('+');
+                intermedVec.push_back('b');
+                intermedVec.push_back('+');
+                intermedVec.push_back('b');
+                intermedVec.push_back('+');
+                intermedVec.push_back('b');
+                intermedVec.push_back(']');
+                intermedVec.push_back('-');
+                intermedVec.push_back('[');
+                intermedVec.push_back('b');
+                intermedVec.push_back('+');
+                intermedVec.push_back('b');
+                intermedVec.push_back('-');
+                intermedVec.push_back('b');
+                intermedVec.push_back(']');
+                break;
+            // A -> B-[[A]+++A]B[+BA]-A
+            case 'a':
+                intermedVec.push_back('b');
+                intermedVec.push_back('-');
+                intermedVec.push_back('[');
+                intermedVec.push_back('[');
+                intermedVec.push_back('a');
+                intermedVec.push_back(']');
+                intermedVec.push_back('+');
+                intermedVec.push_back('+');
+                intermedVec.push_back('+');
+                intermedVec.push_back('a');
+                intermedVec.push_back(']');
+                intermedVec.push_back('b');
+                intermedVec.push_back('[');
+                intermedVec.push_back('+');
+                intermedVec.push_back('b');
+                intermedVec.push_back('a');
+                intermedVec.push_back(']');
+                intermedVec.push_back('-');
+                intermedVec.push_back('a');
+                break;
+            default:
+                intermedVec.push_back(current);
+            }
+        }
+        v = intermedVec;
+        intermedVec.clear();
+
+    }
+    std::string outputString(v.begin(), v.end()); // convert to std string
+    return outputString;
+}
+
+
+>>>>>>> 782e9ddd62df9b9d7c41ec4a2203bbce15aa3ca6
