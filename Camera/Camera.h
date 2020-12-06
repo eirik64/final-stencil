@@ -39,11 +39,20 @@ private:
     void updateViewMatrix();
 
 
-    glm::mat4x4 m_viewMatrix;
-    glm::mat4x4 m_projectionMatrix;
-    glm::mat4x4 m_scaleMatrix;
-    float m_aspectRatio, m_angleX, m_angleY, m_zoomZ;
+    float m_aspectRatio;
+    float m_near;
+    float m_far;
+    glm::mat4 m_translationMatrix;
+    glm::mat4 m_perspectiveTransformation;
+    glm::mat4 m_scaleMatrix;
+    glm::mat4 m_rotationMatrix;
+    float m_thetaH;
+    float m_thetaW;
     glm::vec4 m_eye;
+    glm::vec4 m_up;
+    glm::vec4 m_u;
+    glm::vec4 m_v;
+    glm::vec4 m_w;
 };
 
 #endif // CAMERA_H

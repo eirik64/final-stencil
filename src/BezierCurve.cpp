@@ -43,6 +43,7 @@ void BezierCurve::moveCamera() {
 
     glLineWidth(1.5f);
 
+    // To help visualize the curve
     glBegin(GL_LINE_STRIP);
 
     for (float t = 0; t < 1.f + (1.f/25.f); t += (1.f/ 25.f)) {
