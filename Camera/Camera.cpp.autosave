@@ -79,7 +79,8 @@ float Camera::getHeightAngle() const {
 }
 
 void Camera::updatePosition(float x, float y, float z) {
-    // TODO
+    m_eye = glm::vec4(x, y, z, 1.f);
+    updateViewMatrix();
 }
 
 
@@ -100,14 +101,15 @@ void Camera::setHeightAngle(float h) {
     updateProjectionMatrix();
 }
 
+/*
+ * Probably won't need to implement this stuff
+ * 
 void Camera::translate(const glm::vec4 &v) {
     m_eye += v;
     updateViewMatrix();
 
 }
-/*
- * Probably won't need to implement this stuff
- * 
+
 void Camera::rotateU(float degrees) {
     // @TODO: [] Fill this in...
     glm::vec4 vNot = m_v;
