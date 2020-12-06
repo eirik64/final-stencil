@@ -22,14 +22,20 @@ win32 {
 }
 
 SOURCES += ui/mainwindow.cpp \
+    Camera/Camera.cpp \
     main.cpp \
     glew-1.10.0/src/glew.c \
+    src/BezierCurve.cpp \
     src/TreeScene.cpp \
+    ui/Settings.cpp \
     ui/view.cpp \
     ui/viewformat.cpp
 
 HEADERS += ui/mainwindow.h \
+    Camera/Camera.h \
+    src/BezierCurve.h \
     src/TreeScene.h \
+    ui/Settings.h \
     ui_mainwindow.h \
     glew-1.10.0/include/GL/glew.h \
     ui/view.h \
