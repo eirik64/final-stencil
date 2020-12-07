@@ -9,7 +9,10 @@
 
 
 namespace CS123 { namespace GL {
-class VAO;
+    class VAO;
+    class Shader;
+    class CS123Shader;
+    class Texture2D;
 }}
 
 // Stores the position and angle info needed when we encounter a '[' or ']'
@@ -20,9 +23,8 @@ struct position {
 
 // struct representing each cylinder for tree-building
 struct Branch {
-    Cylinder currBranch;
     glm::mat4x4 transformation; // transformation matrix for that particular branch. (accumulated view, translate, projection matrices)
-    glm::vec3 position;
+    position position;
 };
 
 class TreeScene {
@@ -33,7 +35,7 @@ class TreeScene {
 
         std::string axiom = "A"; // global variable representing the root node.(initialize as std::string)
         int maximumDepth = 5; // maximum recursion depth - global variable.
-        std::vector<Cylinder> getPrimitiveList(); // returns the member variable (a vector of cylinders)
+        std::vector<Branch> getPrimitiveList(); // returns the member variable (a vector of cylinders)
 
     protected:
         void setupTree(std::string inputStr, int width, int height, int numTree);
@@ -43,10 +45,9 @@ class TreeScene {
     private: // private member variables here
         void buildVAO();
         std::vector<GLfloat> m_vertexData;
-//        std::unique_ptr<CS123::GL::VAO> m_VAO;
-       // std::vector<std::string> m_finalString; // will update (Ashley)
-        std::vector<Branch> m_cylinders; // vector that stores primitives and their transformation (composite matrix)
-
+        std::vector<Branch> m_branches; // vector that stores primitives and their transformation (composite matrix)
+        std::unique_ptr<CS123::GL::CS123Shader> m_phongShader;
+        std::unique_ptr<Cylinder> m_cylinder;
 };
 
 #endif // TREESCENE_H
