@@ -9,9 +9,8 @@ using namespace CS123::GL;
 // Default constructor
 TreeScene::TreeScene()
 {
-//  std::string resultString = generateStringAlt(axiom, 1); // start by depth 1.
-    m_cylinder = std::make_unique<Cylinder>(1, 15);
-    //setupTreeAlternative(resultString, 1, 22.5); // initialize tree using the result string from the recursive method.
+      m_resultString = generateStringAlt(axiom, 1); // start by testing depth 1.
+      setupTreeAlternative(m_resultString, 1, 22.5); // initialize tree using the result string from the recursive method.
 }
 
 
@@ -20,30 +19,14 @@ TreeScene::~TreeScene()
 {
 }
 
-/*
- *  Method to initiate the tree.
- *  Input parameters: width (int), height(int), and number of trees in the scene.
- *  Width and heights will essentially be width and height of the cylinder
- *  forming the main bark of the tree.
- *  Function: parses the string generated from the l-system rules
- *  and generates the tree.
- */
-//void TreeScene::setupTree(std::string inputStr, int width, int height, int numTree) {
-//    // sets up the tree according to the final output string
-
-//}
-
-//std::vector<Cylinder> TreeScene::getPrimitiveList() {
-//    return m_cylinders;
-//}
-
 // VAO draw method
 void TreeScene::draw() {
 
     // Using Flyweight pattern
 //    for (int i = 0; i < (int) m_branches.size(); ++i) { // for every "branch" instance
-       // m_phongShader->setUniform("m", glm::mat4x4(1)*glm::translate(glm::vec3(0,1,0))); // set uniforms
-    std::unique_ptr<Cylinder> cylinder = std::make_unique<Cylinder>(1,15);
+//       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+//        m_phongShader->setUniform("m", glm::mat4x4(1)*glm::translate(glm::vec3(0,1,0))); // set uniforms
+        std::unique_ptr<Cylinder> cylinder = std::make_unique<Cylinder>(1,15);
         cylinder->draw();
 //    }
 
@@ -169,10 +152,8 @@ std::string TreeScene::generateStringAlt(std::string chars, int depth) {
     std::string outputString(v.begin(), v.end()); // convert to std string
     if (depth != maximumDepth) { // if not maximum depth,
         std::string resultString = generateStringAlt(outputString, depth + 1); // make a recursive call
-        std::string outputString(resultString.begin(), resultString.end());
-       // std::string outputString(v.begin(), v.end()); // again, convert to std::string
+        outputString = resultString; // reset the outputString.
     }
-    std::cout<<"output string: "<<outputString<<std::endl;
     return outputString;
 }
 
