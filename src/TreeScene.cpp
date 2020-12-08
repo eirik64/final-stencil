@@ -11,6 +11,7 @@ TreeScene::TreeScene()
 {
       m_resultString = generateStringAlt(axiom, 1); // start by testing depth 1.
       setupTreeAlternative(m_resultString, 1, 22.5); // initialize tree using the result string from the recursive method.
+      m_cylinder = std::make_unique<Cylinder>(1, 15);
 }
 
 
@@ -21,14 +22,12 @@ TreeScene::~TreeScene()
 
 // VAO draw method
 void TreeScene::draw() {
-
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     // Using Flyweight pattern
-//    for (int i = 0; i < (int) m_branches.size(); ++i) { // for every "branch" instance
-//       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-//        m_phongShader->setUniform("m", glm::mat4x4(1)*glm::translate(glm::vec3(0,1,0))); // set uniforms
-        std::unique_ptr<Cylinder> cylinder = std::make_unique<Cylinder>(1,15);
-        cylinder->draw();
-//    }
+    for (int i = 0; i < (int) m_branches.size(); ++i) { // for every "branch" instance
+        m_phongShader->setUniform("m", glm::mat4x4(1)*glm::translate(glm::vec3(0,1,0))); // set uniforms
+        m_cylinder->draw();
+    }
 
 }
 

@@ -47,7 +47,7 @@ class TreeScene {
         std::vector<GLfloat> m_vertexData;
         std::vector<Branch> m_branches; // vector that stores primitives and their transformation (composite matrix)
         std::unique_ptr<CS123::GL::CS123Shader> m_phongShader;
-//        std::unique_ptr<Cylinder> m_cylinder;
+        std::unique_ptr<Cylinder> m_cylinder;
         std::string m_resultString;
 };
 
