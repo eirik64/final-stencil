@@ -2,13 +2,13 @@
 #include <iostream>
 #include <string>
 #include "GL/glew.h"
-#include "ResourceLoader.h"
-#include "gl/shaders/CS123Shader.h"
 using namespace CS123::GL;
 
 // Default constructor
 TreeScene::TreeScene()
 {
+      loadPhongShader();
+      m_branches = {}; // initialization.
       m_resultString = generateStringAlt(axiom, 1); // start by testing depth 1.
       setupTreeAlternative(m_resultString, 1, 22.5); // initialize tree using the result string from the recursive method.
       m_cylinder = std::make_unique<Cylinder>(1, 15);
@@ -23,13 +23,48 @@ TreeScene::~TreeScene()
 // VAO draw method
 void TreeScene::draw() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    std::cout<<"size of branches vector: "<<static_cast<int>(m_branches.size())<<std::endl;
     // Using Flyweight pattern
-    for (int i = 0; i < (int) m_branches.size(); ++i) { // for every "branch" instance
-        m_phongShader->setUniform("m", glm::mat4x4(1)*glm::translate(glm::vec3(0,1,0))); // set uniforms
-        m_cylinder->draw();
-    }
+ //   for (int i = 0; i < (int) m_branches.size(); ++i) { // for every "branch" instance
+//        m_phongShader->setUniform("m", glm::mat4x4(1)*glm::translate(glm::vec3(0,1,0))); // set uniforms
+//        m_cylinder->draw();
+//    }
+    std::unique_ptr<Cylinder> cyl1 = std::make_unique<Cylinder>(1, 15);
+    cyl1->draw();
+//    glm::translate(glm::translate(glm::vec3(0,1,0)), glm::vec3(0,1,0));
 
 }
+
+void TreeScene::loadPhongShader() {
+    std::string vertexSource = ResourceLoader::loadResourceFileToString(":/shaders/default.vert");
+    std::string fragmentSource = ResourceLoader::loadResourceFileToString(":/shaders/default.frag");
+    m_phongShader = std::make_unique<CS123Shader>(vertexSource, fragmentSource);
+}
+
+// render() method
+void TreeScene::render(SupportCanvas3D *context) {
+//    setClearColor();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    m_phongShader->bind();
+    setSceneUniforms(context);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    m_phongShader->unbind();
+
+}
+
+void TreeScene::setSceneUniforms(SupportCanvas3D *context) {
+    Camera *camera = context->getCamera();
+    m_phongShader->setUniform("useLighting", settings.useLighting);
+    m_phongShader->setUniform("useArrowOffsets", false);
+    m_phongShader->setUniform("p" , camera->getProjectionMatrix());
+    m_phongShader->setUniform("v", camera->getViewMatrix());
+}
+
+//void TreeScene::setMatrixUniforms(Shader *shader, SupportCanvas3D *context) {
+//    shader->setUniform("p", context->getCamera()->getProjectionMatrix());
+//    shader->setUniform("v", context->getCamera()->getViewMatrix()); // set
+//}
 
 // This method will take in our generated string, the length of a branch that we generate,
 // our overall rotational angle and our recursive depth

@@ -6,7 +6,13 @@
 #include <memory.h>
 #include <QGLWidget>
 #include "glm/gtx/transform.hpp"
-
+#include "ResourceLoader.h"
+#include "gl/shaders/CS123Shader.h"
+#include "SupportCanvas3D.h"
+#include "ResourceLoader.h"
+#include "Settings.h"
+#include "Camera.h"
+#include "OpenGLScene.h"
 
 namespace CS123 { namespace GL {
     class VAO;
@@ -41,6 +47,9 @@ class TreeScene {
         void setupTree(std::string inputStr, int width, int height, int numTree);
         void setupTreeAlternative(std::string inputStr, float branchLength, float rotationAngle);
         std::string generateStringAlt(std::string chars, int depth);
+        void loadPhongShader();
+        void setSceneUniforms(SupportCanvas3D *context);
+        void render(SupportCanvas3D *context);
 
     private: // private member variables here
         void buildVAO();
