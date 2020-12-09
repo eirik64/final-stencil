@@ -52,6 +52,10 @@ class TreeScene {
         std::unique_ptr<CS123::GL::CS123Shader> m_phongShader;
         std::unique_ptr<Cylinder> m_cylinder;
         std::string m_resultString;
+
+        void generateNormals();
+        void setAttribute(GLuint name, GLuint numElementsPerVertex, int offset, VBOAttribMarker::DATA_TYPE type, bool normalize);
+        std::vector<VBOAttribMarker> m_markers;     /// list of VBOAttribMarkers that describe how the data is laid out.
 };
 
 #endif // TREESCENE_H

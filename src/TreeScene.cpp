@@ -57,6 +57,28 @@ void TreeScene::render(SupportCanvas3D *context) {
 
 }
 
+void TreeScene::generateNormals() {
+    //generate random number between 0.0 and 1.0 for y
+    int rand_int_y = rand();
+    float rand_y = static_cast<float>(rand_int_y) / static_cast<float>(RAND_MAX);
+
+    //generate random number between -1.0 and 1.0 for x and z
+    int rand_int_x = rand();
+    float rand_x = static_cast<float>(rand_int_x) / static_cast<float>(RAND_MAX);
+    int rand_int_z = rand();
+    float rand_z = static_cast<float>(rand_int_z) / static_cast<float>(RAND_MAX);
+
+    //put x, y, z coordinates into VAO
+
+    m_tree->setAttribute(ShaderAttrib::NORMAL, 3, sizeof(glm::vec3), VBOAttribMarker::DATA_TYPE::FLOAT, false);
+
+}
+
+void TreeScene::setAttribute(GLuint name, GLuint numElementsPerVertex, int offset,
+                               VBOAttribMarker::DATA_TYPE type, bool normalize) {
+    m_markers.push_back(VBOAttribMarker(name, numElementsPerVertex, offset, type, normalize));
+}
+
 void TreeScene::setSceneUniforms(SupportCanvas3D *context) {
     Camera *camera = context->getCamera();
     m_phongShader->setUniform("useLighting", settings.useLighting);
