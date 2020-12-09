@@ -21,16 +21,10 @@ namespace CS123 { namespace GL {
     class Texture2D;
 }}
 
-// Stores the position and angle info needed when we encounter a '[' or ']'
-struct position {
-    glm::mat4x4 accMat;
-    float angle;
-};
-
 // struct representing each cylinder for tree-building
 struct Branch {
-    glm::mat4x4 transformation; // transformation matrix for that particular branch. (accumulated view, translate, projection matrices)
-    position position;
+    glm::mat4x4 accumlatedMat; // transformation matrix for that particular branch. (accumulated view, translate, projection matrices)
+    float angle;
 };
 
 class TreeScene {
@@ -39,13 +33,13 @@ class TreeScene {
         ~TreeScene(); // destructor
         void draw();
 
-        std::string axiom = "A"; // global variable representing the root node.(initialize as std::string)
+        std::string axiom = "a"; // global variable representing the root node.(initialize as std::string)
         int maximumDepth = 5; // maximum recursion depth - global variable.
         std::vector<Branch> getPrimitiveList(); // returns the member variable (a vector of cylinders)
 
     protected:
         void setupTree(std::string inputStr, int width, int height, int numTree);
-        void setupTreeAlternative(std::string inputStr, float branchLength, float rotationAngle);
+        void setupTreeAlternative(std::string inputStr, float rotationAngle);
         std::string generateStringAlt(std::string chars, int depth);
         void loadPhongShader();
         void setSceneUniforms(SupportCanvas3D *context);

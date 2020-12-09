@@ -8,9 +8,13 @@ using namespace CS123::GL;
 TreeScene::TreeScene()
 {
       loadPhongShader();
-      m_branches = {}; // initialization.
+      Branch root;
+      root.accumlatedMat = glm::mat4x4(1.f);
+      root.angle = 0;
+      m_branches = std::vector<Branch>(); // initialization.
+      m_branches.push_back(root);
       m_resultString = generateStringAlt(axiom, 1); // start by testing depth 1.
-      setupTreeAlternative(m_resultString, 1, 22.5); // initialize tree using the result string from the recursive method.
+      setupTreeAlternative(m_resultString, 22.5); // initialize tree using the result string from the recursive method.
       m_cylinder = std::make_unique<Cylinder>(1, 15);
 }
 
@@ -23,14 +27,14 @@ TreeScene::~TreeScene()
 // VAO draw method
 void TreeScene::draw() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    std::cout<<"size of branches vector: "<<static_cast<int>(m_branches.size())<<std::endl;
+    std::cout<<"size of branches vector: "<< m_branches.size() <<std::endl;
     // Using Flyweight pattern
- //   for (int i = 0; i < (int) m_branches.size(); ++i) { // for every "branch" instance
-//        m_phongShader->setUniform("m", glm::mat4x4(1)*glm::translate(glm::vec3(0,1,0))); // set uniforms
-//        m_cylinder->draw();
-//    }
-    std::unique_ptr<Cylinder> cyl1 = std::make_unique<Cylinder>(1, 15);
-    cyl1->draw();
+    for (int i = 0; i < (int) m_branches.size(); ++i) { // for every "branch" instance
+        m_phongShader->setUniform("m", glm::mat4x4(1)*glm::translate(glm::vec3(0,1,0))); // set uniforms
+        m_cylinder->draw();
+    }
+//    std::unique_ptr<Cylinder> cyl1 = std::make_unique<Cylinder>(1, 15);
+//    cyl1->draw();
 //    glm::translate(glm::translate(glm::vec3(0,1,0)), glm::vec3(0,1,0));
 
 }
@@ -68,10 +72,14 @@ void TreeScene::setSceneUniforms(SupportCanvas3D *context) {
 
 // This method will take in our generated string, the length of a branch that we generate,
 // our overall rotational angle and our recursive depth
-void TreeScene::setupTreeAlternative(std::string inputStr, float branchLength, float rotationAngle) {
-    std::vector<position> stack; // Pushes in positions at '[' and Pops them at ']'
+void TreeScene::setupTreeAlternative(std::string inputStr, float rotationAngle) {
+    std::vector<glm::mat4x4> stack = std::vector<glm::mat4x4>();
+    Branch current;
+    current.accumlatedMat = glm::mat4x4(1.0f); // identity
+    current.angle = 0; // Whatever initial angle would cause no change to the axiom when applied (assuming a 0 change in angles)
 
     for (int i = 0; i < (int)inputStr.length(); i++) {
+        std::cout << i << std::endl;
         switch(inputStr[i]) {
             case 'a': {
                 // do nothing
@@ -80,39 +88,47 @@ void TreeScene::setupTreeAlternative(std::string inputStr, float branchLength, f
             case 'b': { // draw a line at curr angle.
                 // Draw line forward with the length of branchLength and update currentPos
                 Branch newBranch;
-                newBranch.transformation = glm::mat4x4(1)*glm::translate(glm::vec3(0,1,0)); // translate upward by height of the cylinder, 1
-                newBranch.position = m_branches.back().position; // same position as before
+                // NOTE: Might have to change our angl to radians when we use glm::rotate but IDK!!! Just a thought
+
+                // IMPORTANT: This next line is the meat of the code. If our tree comes out wrong it probably has to do with what we are multipying with and how!!!
+                newBranch.accumlatedMat = current.accumlatedMat*glm::translate(glm::vec3(0.f,1.f,0.f)) * glm::rotate(current.angle, glm::vec3(0.f, 1.f, 0.f)) * glm::mat4x4(1.f); // translate upward by height of the cylinder, 1
+                current.accumlatedMat = newBranch.accumlatedMat;
+                newBranch.angle = 0; // same position as before so we reset angle back to 0
+                current.angle = 0;
+                std::cout << "hllo" << std::endl;
                 m_branches.push_back(newBranch); // push it to vector
                 break;
             }
             case '[': {
                 // Pushes position into stack, no drawing
-                position newPos; // current position
+                /*position newPos; // current position
                 newPos.angle = m_branches.back().position.angle; // reset angle to current cylinder's pos angle.
-                newPos.accMat = m_branches.back().transformation; // current transformation matrix
-                stack.push_back(newPos);
+                newPos.rotate = m_branches.back().position.rotate;*/ // current transformation matrix
+                stack.push_back(current.accumlatedMat);
                 break;
             }
             case ']': { // there might be an overlap, but it would generally be fine i think
                 // Pops latest position and continues drawing from that position
-                position latestPos = stack.back(); // latest position = last element in the stack
+                current.accumlatedMat = stack.back(); // latest position = last element in the stack
                 stack.pop_back(); // erase last element
-                Branch newBranch;
-                newBranch.position = latestPos;
-                newBranch.transformation = glm::mat4x4(1);
-                m_branches.push_back(newBranch); // push back with the updated, stored position (transforming current cylinder at hand)
+                //This is all we should have to do!
+//                Branch newBranch;
+//                newBranch.position = latestPos;
+//                newBranch.accumlatedMat = glm::mat4x4(1);
+//                m_branches.push_back(newBranch); // push back with the updated, stored position (transforming current cylinder at hand)
                 break;
             }
             case '+': { // Updates current position, angle decreases by 22.5 to signify turning left
-                Branch newBranch;
-                newBranch.position = m_branches.back().position; // update current position
-                newBranch.transformation =glm::rotate(glm::mat4x4(1), -rotationAngle, glm::vec3(0,0,0)); // I think third parameter is wrong (rotation axis)
+                current.angle -= rotationAngle; // For now wee hold onto the new angle in current. Apply it to the accumulation matrix once we reeach a call to draw forward!
+
+                //Hold off on applying the transformation because it'll be done in switch case 'b' anyways!!
+                //current.accumlatedMat = glm::rotate(-rotationAngle, glm::vec3(0.f,1.f,0.f)) * glm::mat4x4(1.f); // I think third parameter is wrong (rotation axis)
+
                 break;
             }
             case '-': { // Updates current position, angle increases by 22.5 to signify turning right
-                Branch newBranch;
-                newBranch.position = m_branches.back().position; // update current position
-                newBranch.transformation =glm::rotate(glm::mat4x4(1), rotationAngle, glm::vec3(0,0,0)); // I think third parameter is wrong (rotation axis)
+                current.angle += rotationAngle;
+                //current.accumlatedMat =glm::rotate(rotationAngle, glm::vec3(0,1.f,0)) * glm::mat4x4(1.f); // I think third parameter is wrong (rotation axis)
                 break;
             }
         }
@@ -124,6 +140,7 @@ void TreeScene::setupTreeAlternative(std::string inputStr, float branchLength, f
 std::string TreeScene::generateStringAlt(std::string chars, int depth) {
     std::vector<char> intermedVec;
     std::vector<char> v(chars.begin(), chars.end());
+    std::cout << chars << std::endl;
 
     for (int i = 0; i < depth; i++) {
         for (int j = 0; j < (int) v.size(); j++) {
@@ -184,10 +201,7 @@ std::string TreeScene::generateStringAlt(std::string chars, int depth) {
     } // end of double for loop
 
     std::string outputString(v.begin(), v.end()); // convert to std string
-    if (depth != maximumDepth) { // if not maximum depth,
-        std::string resultString = generateStringAlt(outputString, depth + 1); // make a recursive call
-        outputString = resultString; // reset the outputString.
-    }
+
     return outputString;
 }
 

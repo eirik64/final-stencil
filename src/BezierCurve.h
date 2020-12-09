@@ -1,8 +1,8 @@
 #ifndef BEZIERCURVE_H
 #define BEZIERCURVE_H
 
-#include "Camera/Camera.h"
-#include "GL/glew.h"
+#include "CamtransCamera.h"
+#include "SupportCanvas3D.h"
 
 #include <math.h>
 #include <iostream>
@@ -12,18 +12,17 @@
 class BezierCurve
 {
 public:
-    BezierCurve(Camera camera);
+    BezierCurve(glm::vec4 position);
+    ~BezierCurve();
 
     glm::vec4 PointOnCurve(glm::vec4 p1, glm::vec4 p2, glm::vec4 p3, float time);
-    void moveCamera();
+    void moveCamera(CamtransCamera* camera, QWidget * canvas);
 
 private:
-
-    Camera m_camera;
     glm::vec4 m_startPosition;
     glm::vec4 m_controlPoint;
     glm::vec4 m_endPoint;
-    float m_currentTime;
+
 
 };
 
