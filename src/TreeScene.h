@@ -83,6 +83,10 @@ class TreeScene {
 //        std::unique_ptr<OpenGLShape> m_shape; <-- This part causes compilation error. Can't figure out why (Ashley)
         const float m_numRows, m_numCols;
 
+        void createSkyBox();
+        void createCubeMap();
+        void loadCubeMapSide(GLuint texture, GLenum side_target, const char* file_name);
+
 };
 
 #endif // TREESCENE_H

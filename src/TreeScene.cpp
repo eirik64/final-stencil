@@ -239,9 +239,6 @@ std::string TreeScene::generateStringAlt(std::string chars, int depth) {
     return outputString;
 }
 
-// IMPLEMENT ENVIRONMENTAL MAPPING!
-
-
 // IMPLEMENT TERRAIN!
 // Note: currently, m_shape (terrain VAO) is causing some errors. Would appreciate if you can take a look at it!
 // Also, TA mentioned that they don't run our projects but instead they grade just on the spot on the demo day.
@@ -379,5 +376,102 @@ void TreeScene::terrainDraw()
 {
 //    m_shape->draw();
 }
+
+// IMPLEMENT ENVIRONMENTAL MAPPING!
+
+void TreeScene::createSkyBox() {
+    float points[] = {
+      -10.0f,  10.0f, -10.0f,
+      -10.0f, -10.0f, -10.0f,
+       10.0f, -10.0f, -10.0f,
+       10.0f, -10.0f, -10.0f,
+       10.0f,  10.0f, -10.0f,
+      -10.0f,  10.0f, -10.0f,
+
+      -10.0f, -10.0f,  10.0f,
+      -10.0f, -10.0f, -10.0f,
+      -10.0f,  10.0f, -10.0f,
+      -10.0f,  10.0f, -10.0f,
+      -10.0f,  10.0f,  10.0f,
+      -10.0f, -10.0f,  10.0f,
+
+       10.0f, -10.0f, -10.0f,
+       10.0f, -10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f, -10.0f,
+       10.0f, -10.0f, -10.0f,
+
+      -10.0f, -10.0f,  10.0f,
+      -10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f, -10.0f,  10.0f,
+      -10.0f, -10.0f,  10.0f,
+
+      -10.0f,  10.0f, -10.0f,
+       10.0f,  10.0f, -10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+      -10.0f,  10.0f,  10.0f,
+      -10.0f,  10.0f, -10.0f,
+
+      -10.0f, -10.0f, -10.0f,
+      -10.0f, -10.0f,  10.0f,
+       10.0f, -10.0f, -10.0f,
+       10.0f, -10.0f, -10.0f,
+      -10.0f, -10.0f,  10.0f,
+       10.0f, -10.0f,  10.0f
+    };
+
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, 3 * 36 * sizeof(float), &points, GL_STATIC_DRAW);
+
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+}
+
+void TreeScene::createCubeMap() {
+    const char* front;
+      const char* back;
+      const char* top;
+      const char* bottom;
+      const char* left;
+      const char* right;
+      GLuint tex_cube_int = 0;
+      GLuint* tex_cube = &tex_cube_int;
+
+      // generate a cube-map texture to hold all the sides
+      glActiveTexture(GL_TEXTURE0);
+      glGenTextures(1, tex_cube);
+
+      // load each image and copy into a side of the cube-map texture
+      loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, ":/final/posz.jpg");
+
+      loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, ":/final/negz.jpg");
+      loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, ":/final/posy.jpg");
+      loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, ":/final/negy.jpg");
+      loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, ":/final/negx.jpg");
+      loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_POSITIVE_X, ":/final/posx.jpg");
+      // format cube map texture
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+}
+
+void TreeScene::loadCubeMapSide(GLuint texture, GLenum side_target, const char* file_name) {
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+    QImage image(file_name);
+    glTexImage2D(side_target, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.bits());
+}
+
 
 
