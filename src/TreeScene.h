@@ -1,5 +1,6 @@
 #ifndef TREESCENE_H
 #define TREESCENE_H
+
 #include "shapes/Cylinder.h"
 #include <iostream>
 #include <string>
@@ -13,6 +14,21 @@
 #include "Settings.h"
 #include "Camera.h"
 #include "OpenGLScene.h"
+#include "gl/datatype/VBOAttribMarker.h"
+
+#include "GL/glew.h"
+#include <QTimer>
+
+#include "glm/glm.hpp"            // glm::vec*, mat*, and basic glm functions
+#include "glm/gtc/type_ptr.hpp"   // glm::value_ptr
+
+#include <memory>  // std::unique_ptr
+
+#include "gl/datatype/FBO.h"
+#include "labs/lab05/src/openglshape.h"
+
+#include <vector>
+
 
 namespace CS123 { namespace GL {
     class VAO;
@@ -44,6 +60,10 @@ class TreeScene {
         void loadPhongShader();
         void setSceneUniforms(SupportCanvas3D *context);
         void render(SupportCanvas3D *context);
+        void generateNormals();
+        void setAttribute(GLuint name, GLuint numElementsPerVertex, int offset, CS123::GL::VBOAttribMarker::DATA_TYPE type, bool normalize);
+        std::vector<CS123::GL::VBOAttribMarker> m_markers;     /// list of VBOAttribMarkers that describe how the data is laid out.
+        void setMatrixUniforms(CS123::GL::Shader *shader, SupportCanvas3D *context);
 
     private: // private member variables here
         void buildVAO();
@@ -53,9 +73,16 @@ class TreeScene {
         std::unique_ptr<Cylinder> m_cylinder;
         std::string m_resultString;
 
-        void generateNormals();
-        void setAttribute(GLuint name, GLuint numElementsPerVertex, int offset, VBOAttribMarker::DATA_TYPE type, bool normalize);
-        std::vector<VBOAttribMarker> m_markers;     /// list of VBOAttribMarkers that describe how the data is laid out.
+        // Terrain
+        void init();
+        void terrainDraw();
+
+        float randValue(int row, int col);
+        glm::vec3 getPosition(int row, int col);
+        glm::vec3 getNormal(int row, int col);
+//        std::unique_ptr<OpenGLShape> m_shape; <-- This part causes compilation error. Can't figure out why (Ashley)
+        const float m_numRows, m_numCols;
+
 };
 
 #endif // TREESCENE_H
