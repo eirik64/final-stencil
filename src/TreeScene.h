@@ -15,6 +15,7 @@
 #include "Camera.h"
 #include "OpenGLScene.h"
 #include "gl/datatype/VBOAttribMarker.h"
+#include "gl/shaders/ShaderAttribLocations.h"
 
 #include "GL/glew.h"
 #include <QTimer>
