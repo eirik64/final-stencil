@@ -11,15 +11,18 @@ using namespace CS123::GL;
 TreeScene::TreeScene() : m_numRows(100), m_numCols(m_numRows)
 {
       loadPhongShader();
+      createSkyBox(); // for Texture mapping
+      createCubeMap();
       Branch root;
       root.accumlatedMat = glm::mat4x4(1.f);
       root.angle = 0;
       m_branches = std::vector<Branch>(); // initialization.
       m_branches.push_back(root);
-      m_resultString = generateStringAlt(axiom, 1); // start by testing depth 1.
+      m_resultString = generateStringAlt(axiom, 2); // start by testing depth 1.
       std::cout<<"result string: "<<m_resultString<<std::endl;
       setupTreeAlternative(m_resultString, 22.5); // initialize tree using the result string from the recursive method.
       m_cylinder = std::make_unique<Cylinder>(1, 15);
+      init();
 }
 
 
@@ -31,11 +34,11 @@ TreeScene::~TreeScene()
 // VAO draw method
 void TreeScene::draw() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    terrainDraw();
     std::cout<<"size of branches vector: "<< m_branches.size() <<std::endl;
     // Using Flyweight pattern
     for (int i = 0; i < (int) m_branches.size(); ++i) { // for every "branch" instance
         m_phongShader->setUniform("m", m_branches[i].accumlatedMat); // set uniforms
-        std::cout<<"WhatUp!"<<std::endl;
         m_cylinder->draw();
     }
 
@@ -116,7 +119,8 @@ void TreeScene::setupTreeAlternative(std::string inputStr, float rotationAngle) 
                 rotationAngle = glm::radians(rotationAngle);
 
                 // IMPORTANT: This next line is the meat of the code. If our tree comes out wrong it probably has to do with what we are multipying with and how!!!
-                newBranch.accumlatedMat = current.accumlatedMat*glm::translate(glm::vec3(0.f,1.f,0.f)) * glm::rotate(current.angle, glm::vec3(1.f, 0.f, 1.f)); // translate upward by height of the cylinder, 1
+                newBranch.accumlatedMat = current.accumlatedMat*glm::translate(glm::vec3(0.f,1.f,0.f))
+                                            * glm::rotate(current.angle, glm::vec3(0.f, 0.f, 0.5)) *glm::mat4x4(1); // translate upward by height of the cylinder, 1
                 current.accumlatedMat = newBranch.accumlatedMat;
                 newBranch.angle = 0; // same position as before so we reset angle back to 0
                 current.angle = 0;
@@ -126,9 +130,6 @@ void TreeScene::setupTreeAlternative(std::string inputStr, float rotationAngle) 
             case '[': {
                 // Pushes position into stack, no drawing
                 stack.push_back(current.accumlatedMat);
-//                Branch newBranch;
-//                newBranch.accumlatedMat = current.accumlatedMat;
-//                m_branches.push_back(newBranch);
                 break;
             }
             case ']': { // there might be an overlap, but it would generally be fine i think
@@ -139,26 +140,30 @@ void TreeScene::setupTreeAlternative(std::string inputStr, float rotationAngle) 
             }
             case '+': { // Updates current position, angle decreases by 22.5 to signify turning left
             Branch newBranch;
-                current.angle -= rotationAngle;
+                current.accumlatedMat *= glm::rotate(current.accumlatedMat, current.angle-rotationAngle, glm::vec3(0.f,0.f,1.f));
+                newBranch.accumlatedMat =current.accumlatedMat;
+                m_branches.push_back(newBranch);
 //                current.angle -= rotationAngle; // For now wee hold onto the new angle in current. Apply it to the accumulation matrix once we reeach a call to draw forward!
-//                newBranch.accumlatedMat = current.accumlatedMat*glm::translate(glm::vec3(0.f,1.f,0.f))
-//                        * glm::rotate(current.angle, glm::vec3(1.f, 0.f, 1.f)); // translate upward by height of the cylinder, 1
+//                newBranch.accumlatedMat = current.accumlatedMat* glm::rotate(current.angle, glm::vec3(0.f, 0.f, 1.f)); // translate upward by height of the cylinder, 1
 //                current.accumlatedMat = newBranch.accumlatedMat;
 //                newBranch.angle = 0; // same position as before so we reset angle back to 0
 //                m_branches.push_back(newBranch); // push it to vector
 //                stack.push_back(current.accumlatedMat);
                 //Hold off on applying the transformation because it'll be done in switch case 'b' anyways!!
+
                 break;
             }
             case '-': { // Updates current position, angle increases by 22.5 to signify turning right
-//                Branch newBranch;
-                current.angle += rotationAngle;
-//                current.angle += rotationAngle; // For now wee hold onto the new angle in current. Apply it to the accumulation matrix once we reeach a call to draw forward!
-//                newBranch.accumlatedMat = current.accumlatedMat*glm::translate(glm::vec3(0.f,1.f,0.f))
-//                        * glm::rotate(current.angle, glm::vec3(1.f, 0.f, 1.f)); // translate upward by height of the cylinder, 1
+                Branch newBranch;
+                current.accumlatedMat *= glm::rotate(current.accumlatedMat, current.angle+rotationAngle, glm::vec3(0.f,0.f,1.f));
+                newBranch.accumlatedMat =current.accumlatedMat;
+                 m_branches.push_back(newBranch);
+     //           current.angle += rotationAngle; // For now wee hold onto the new angle in current. Apply it to the accumulation matrix once we reeach a call to draw forward!
+//                newBranch.accumlatedMat = current.accumlatedMat* glm::rotate(current.angle, glm::vec3(0.f, 0.f, 1.f)); // translate upward by height of the cylinder, 1
 //                current.accumlatedMat = newBranch.accumlatedMat;
 //                newBranch.angle = 0; // same position as before so we reset angle back to 0
 //                m_branches.push_back(newBranch); // push it to vector
+//                std::cout<<"- sign is being called and tree turning right"<<std::endl;
 //                stack.push_back(current.accumlatedMat);
                 break;
             }
@@ -179,31 +184,25 @@ std::string TreeScene::generateStringAlt(std::string chars, int depth) {
             char current = outputCharVec[i];
             // B -> BB+[-B+B+B+B]-[B+B-B]
             switch (current) {
-            case 'b':
+            case 'a': // = x
                 intermedVec.push_back('b');
                 intermedVec.push_back('b');
                 intermedVec.push_back('+');
                 intermedVec.push_back('[');
+                intermedVec.push_back('+');
+                intermedVec.push_back('b');
                 intermedVec.push_back('-');
-                intermedVec.push_back('b');
-                intermedVec.push_back('+');
-                intermedVec.push_back('b');
-                intermedVec.push_back('+');
-                intermedVec.push_back('b');
-                intermedVec.push_back('+');
                 intermedVec.push_back('b');
                 intermedVec.push_back(']');
                 intermedVec.push_back('-');
                 intermedVec.push_back('[');
                 intermedVec.push_back('b');
                 intermedVec.push_back('+');
-                intermedVec.push_back('b');
-                intermedVec.push_back('-');
                 intermedVec.push_back('b');
                 intermedVec.push_back(']');
                 break;
             // A -> B-[[A]+++A]B[+BA]-A
-            case 'a':
+            case 'b':
                 intermedVec.push_back('b');
                 intermedVec.push_back('-');
                 intermedVec.push_back('[');
@@ -230,8 +229,9 @@ std::string TreeScene::generateStringAlt(std::string chars, int depth) {
 
         }
         outputCharVec = intermedVec; // set the output vector to the intermediate vector.
+        std::string medString(outputCharVec.begin(), outputCharVec.end());
         intermedVec.clear();
-        std::cout<<"How many times does this print"<<std::endl;
+        std::cout<<"mediate string: "<<medString<<std::endl;
     } // end of double for loop
 
     std::string outputString(outputCharVec.begin(), outputCharVec.end()); // final output string
@@ -363,12 +363,11 @@ void TreeScene::init() {
     }
 
     // Initialize OpenGLShape.
-//    m_shape = std::make_unique<OpenGLShape>();
-//    std::cout<<"Is this method called?"<<std::endl;
-//    m_shape->setVertexData(&data[0][0], data.size() * 3, VBO::GEOMETRY_LAYOUT::LAYOUT_TRIANGLE_STRIP, numVertices);
-//    m_shape->setAttribute(ShaderAttrib::POSITION, 3, 0, VBOAttribMarker::DATA_TYPE::FLOAT, false);
-//    m_shape->setAttribute(ShaderAttrib::NORMAL, 3, sizeof(glm::vec3), VBOAttribMarker::DATA_TYPE::FLOAT, false);
-//    m_shape->buildVAO();
+    m_shape = std::make_unique<OpenGLShape>();
+    m_shape->setVertexData(&data[0][0], data.size() * 3, VBO::GEOMETRY_LAYOUT::LAYOUT_TRIANGLE_STRIP, numVertices);
+    m_shape->setAttribute(ShaderAttrib::POSITION, 3, 0, VBOAttribMarker::DATA_TYPE::FLOAT, false);
+    m_shape->setAttribute(ShaderAttrib::NORMAL, 3, sizeof(glm::vec3), VBOAttribMarker::DATA_TYPE::FLOAT, false);
+    m_shape->buildVAO();
 }
 
 
@@ -377,7 +376,103 @@ void TreeScene::init() {
  */
 void TreeScene::terrainDraw()
 {
-//    m_shape->draw();
+    m_shape->draw();
+}
+
+// IMPLEMENT ENVIRONMENTAL MAPPING!
+
+void TreeScene::createSkyBox() {
+    float points[] = {
+      -10.0f,  10.0f, -10.0f,
+      -10.0f, -10.0f, -10.0f,
+       10.0f, -10.0f, -10.0f,
+       10.0f, -10.0f, -10.0f,
+       10.0f,  10.0f, -10.0f,
+      -10.0f,  10.0f, -10.0f,
+
+      -10.0f, -10.0f,  10.0f,
+      -10.0f, -10.0f, -10.0f,
+      -10.0f,  10.0f, -10.0f,
+      -10.0f,  10.0f, -10.0f,
+      -10.0f,  10.0f,  10.0f,
+      -10.0f, -10.0f,  10.0f,
+
+       10.0f, -10.0f, -10.0f,
+       10.0f, -10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f, -10.0f,
+       10.0f, -10.0f, -10.0f,
+
+      -10.0f, -10.0f,  10.0f,
+      -10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f, -10.0f,  10.0f,
+      -10.0f, -10.0f,  10.0f,
+
+      -10.0f,  10.0f, -10.0f,
+       10.0f,  10.0f, -10.0f,
+       10.0f,  10.0f,  10.0f,
+       10.0f,  10.0f,  10.0f,
+      -10.0f,  10.0f,  10.0f,
+      -10.0f,  10.0f, -10.0f,
+
+      -10.0f, -10.0f, -10.0f,
+      -10.0f, -10.0f,  10.0f,
+       10.0f, -10.0f, -10.0f,
+       10.0f, -10.0f, -10.0f,
+      -10.0f, -10.0f,  10.0f,
+       10.0f, -10.0f,  10.0f
+    };
+
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, 3 * 36 * sizeof(float), &points, GL_STATIC_DRAW);
+
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+}
+
+void TreeScene::createCubeMap() {
+    const char* front;
+      const char* back;
+      const char* top;
+      const char* bottom;
+      const char* left;
+      const char* right;
+      GLuint tex_cube_int = 0;
+      GLuint* tex_cube = &tex_cube_int;
+
+      // generate a cube-map texture to hold all the sides
+      glActiveTexture(GL_TEXTURE0);
+      glGenTextures(1, tex_cube);
+
+      // load each image and copy into a side of the cube-map texture
+      loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, ":/final/posz.jpg");
+      loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, ":/final/negz.jpg");
+      loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, ":/final/posy.jpg");
+      loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, ":/final/negy.jpg");
+      loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, ":/final/negx.jpg");
+      loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_POSITIVE_X, ":/final/posx.jpg");
+
+      // format cube map texture
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+}
+
+void TreeScene::loadCubeMapSide(GLuint texture, GLenum side_target, const char* file_name) {
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+    QImage image(file_name);
+    glTexImage2D(side_target, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.bits());
 }
 
 

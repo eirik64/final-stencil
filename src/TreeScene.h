@@ -14,8 +14,6 @@
 #include "Settings.h"
 #include "Camera.h"
 #include "OpenGLScene.h"
-#include "gl/datatype/VBOAttribMarker.h"
-#include "gl/shaders/ShaderAttribLocations.h"
 
 #include "GL/glew.h"
 #include <QTimer>
@@ -23,10 +21,11 @@
 #include "glm/glm.hpp"            // glm::vec*, mat*, and basic glm functions
 #include "glm/gtc/type_ptr.hpp"   // glm::value_ptr
 
-#include <memory>  // std::unique_ptr
+#include <memory>
 
 #include "gl/datatype/FBO.h"
-#include "labs/lab05/src/openglshape.h"
+#include "gl/datatype/VBOAttribMarker.h"
+#include "openglshape.h"
 
 #include <vector>
 
@@ -81,8 +80,12 @@ class TreeScene {
         float randValue(int row, int col);
         glm::vec3 getPosition(int row, int col);
         glm::vec3 getNormal(int row, int col);
-//        std::unique_ptr<OpenGLShape> m_shape; <-- This part causes compilation error. Can't figure out why (Ashley)
+        std::unique_ptr<OpenGLShape> m_shape; // Line causing the error (with this commented out, my code compiles)
         const float m_numRows, m_numCols;
+
+        void createSkyBox();
+        void createCubeMap();
+        void loadCubeMapSide(GLuint texture, GLenum side_target, const char* file_name);
 
 };
 
